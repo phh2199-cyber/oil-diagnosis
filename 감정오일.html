@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>감정 오일 전문 진단 | 위앤미교육연구소</title>
+    <style>
+        /* [CSS] 기존 디자인 유지 및 선택 해제 스타일 추가 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+            --glass-bg: rgba(255, 255, 255, 0.35);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --primary-teal: #00796b;
+            --text-main: #2c3e50;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-main);
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/natural-paper.png');
+            opacity: 0.15; pointer-events: none; z-index: 1;
+        }
+
+        .container { width: 100%; max-width: 500px; z-index: 10; }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 40px 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .glass-card.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { font-size: 2.2rem; line-height: 1.3; margin-bottom: 20px; font-weight: 800; color: #1a2a3a; text-align: center; }
+        .intro-text { font-size: 1.05rem; color: #4a5a6a; line-height: 1.7; margin-bottom: 30px; text-align: center; }
+        
+        .guide-box {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 20px; padding: 20px; margin-bottom: 35px;
+        }
+
+        /* 오일 아이템 그리드 */
+        .oil-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 15px; }
+        
+        .oil-item {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            padding: 25px 10px;
+            text-align: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            color: #333;
+            user-select: none;
+        }
+
+        .oil-item.selected { 
+            border-color: var(--oil-color); 
+            background: #fff; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        /* 순서 표시 숫자 애니메이션 */
+        .oil-item.selected::after {
+            content: attr(data-rank);
+            position: absolute; top: 10px; right: 10px;
+            width: 24px; height: 24px; background: var(--oil-color);
+            color: #fff; border-radius: 50%; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+
+        /* 버튼 및 유틸리티 */
+        .btn-main {
+            background: var(--primary-teal);
+            color: white; border: none; padding: 18px;
+            border-radius: 50px; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,121,107,0.3);
+            margin-top: 10px;
+        }
+        .btn-main.disabled { background: #b0bec5; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.7; }
+
+        .btn-reset {
+            background: none; border: none; color: #78909c; text-decoration: underline;
+            font-size: 0.85rem; margin-bottom: 15px; cursor: pointer; align-self: flex-end;
+        }
+
+        /* 결과지 스타일 */
+        .result-section { text-align: left; margin-bottom: 30px; }
+        .result-section h3 { font-size: 1.1rem; margin-bottom: 10px; border-left: 5px solid var(--primary-teal); padding-left: 10px; color: #1a2a3a; }
+        .result-text { font-size: 0.95rem; line-height: 1.7; color: #444; white-space: pre-line; }
+        .result-list { padding-left: 20px; margin-top: 10px; }
+        .result-list li { margin-bottom: 8px; font-size: 0.95rem; }
+
+        .footer { margin-top: 30px; font-size: 0.8rem; color: #78909c; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <article id="step-1" class="glass-card active">
+            <h1>내 마음의 향기를<br>찾아보세요</h1>
+            <p class="intro-text">기분 오일과 감정 오일의 향을 깊이 맡아보세요.<br>무의식적으로 끌리는 향의 순서가<br>지금 당신의 마음 상태를 말해줍니다.</p>
+            <section class="guide-box">
+                <p style="font-weight: 800; margin-bottom: 10px;">📋 진단 방법</p>
+                <p style="font-size: 0.9rem; line-height: 1.6; color: #555;">
+                    1. 가장 좋은 향부터 차례대로 클릭하세요.<br>
+                    2. 잘못 눌렀다면 <b>다시 클릭하여 취소</b>할 수 있습니다.<br>
+                    3. 모든 오일을 순서대로 선택하면 분석이 시작됩니다.
+                </p>
+            </section>
+            <button class="btn-main" onclick="nextStep(2)">진단 시작하기 →</button>
+        </article>
+
+        <article id="step-2" class="glass-card">
+            <button class="btn-reset" onclick="resetSelection('mood')">초기화</button>
+            <div class="step-indicator">Step 01. 기분 오일</div>
+            <h2 style="margin-bottom: 10px;">현재 컨디션을 나타냅니다.</h2>
+            <p class="step-msg">가장 좋은 향부터 순서대로 선택해주세요.</p>
+            
+            <div class="oil-grid">
+                <div class="oil-item mood" onclick="handleSelect(this, 'mood', 'citrus')" style="--oil-color: #FF9800;">시트러스 블리스</div>
+                <div class="oil-item mood" onclick="handleSelect(this, 'mood', 'balance')" style="--oil-color: #827717;">밸런스</div>
+                <div class="oil-item mood" onclick="handleSelect(this, 'mood', 'serenity')" style="--oil-color: #9C27B0;">세레니티</div>
+                <div class="oil-item mood" onclick="handleSelect(this, 'mood', 'elevation')" style="--oil-color: #FFEB3B;">엘리베이션</div>
+            </div>
+            
+            <button id="btn-mood" class="btn-main disabled" disabled onclick="nextStep(3)">다음 단계로 (감정 오일) →</button>
+        </article>
+
+        <article id="step-3" class="glass-card">
+            <button class="btn-reset" onclick="resetSelection('emotion')">초기화</button>
+            <div class="step-indicator">Step 02. 감정 오일</div>
+            <h2 style="margin-bottom: 10px;">무의식적 감정을 나타냅니다.</h2>
+            <p class="step-msg">가장 좋은 향부터 순서대로 선택해주세요.</p>
+            
+            <div class="oil-grid">
+                <div class="oil-item emotion" onclick="handleSelect(this, 'emotion', 'motivate')" style="--oil-color: #FB8C00;">모티베이트</div>
+                <div class="oil-item emotion" onclick="handleSelect(this, 'emotion', 'cheer')" style="--oil-color: #FBC02D;">치어</div>
+                <div class="oil-item emotion" onclick="handleSelect(this, 'emotion', 'passion')" style="--oil-color: #E53935;">패션</div>
+                <div class="oil-item emotion" onclick="handleSelect(this, 'emotion', 'forgive')" style="--oil-color: #43A047;">포기브</div>
+                <div class="oil-item emotion" onclick="handleSelect(this, 'emotion', 'console')" style="--oil-color: #8E24AA;">콘솔</div>
+                <div class="oil-item emotion" onclick="handleSelect(this, 'emotion', 'peace')" style="--oil-color: #00695C;">피스필</div>
+            </div>
+            
+            <button id="btn-emotion" class="btn-main disabled" disabled onclick="generateResult()">결과 분석하기 →</button>
+        </article>
+
+        <article id="step-4" class="glass-card">
+            <div class="result-header">
+                <p style="color:var(--primary-teal); font-weight:800; margin-bottom:5px;">Expert Analysis</p>
+                <p style="font-style:italic; font-size:0.95rem; margin-bottom:10px;">"당신의 마음이 보내는 메시지입니다."</p>
+                <h2>진단 결과 리포트</h2>
+            </div>
+            <section class="result-section">
+                <h3>1. 현재 감정 상태</h3>
+                <div id="res-1" class="result-text"></div>
+            </section>
+            <section class="result-section">
+                <h3>2. 심층 분석</h3>
+                <div id="res-2" class="result-text"></div>
+            </section>
+            <section class="result-section">
+                <h3>3. 마음 처방전 (Action Plan)</h3>
+                <ul id="res-3" class="result-list"></ul>
+            </section>
+            <section class="result-section">
+                <h3>4. 오일 활용 팁</h3>
+                <ul id="res-4" class="result-list"></ul>
+            </section>
+            <button class="btn-main" onclick="location.reload()">다시 진단하기</button>
+        </article>
+
+        <footer class="footer">© 2026 위앤미교육연구소. All Rights Reserved.</footer>
+    </div>
+
+    <script>
+        let moodSelection = [];
+        let emotionSelection = [];
+
+        function nextStep(n) {
+            document.querySelectorAll('.glass-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('step-' + n).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // 선택 및 해제 통합 핸들러
+        function handleSelect(el, type, oilId) {
+            let targetArr = (type === 'mood') ? moodSelection : emotionSelection;
+            let limit = (type === 'mood') ? 4 : 6;
+            let btn = (type === 'mood') ? document.getElementById('btn-mood') : document.getElementById('btn-emotion');
+
+            if (el.classList.contains('selected')) {
+                // 이미 선택된 경우 -> 해제
+                targetArr.splice(targetArr.indexOf(oilId), 1);
+                el.classList.remove('selected');
+                el.removeAttribute('data-rank');
+                
+                // 남은 선택지들의 순서 숫자 다시 매기기
+                const allItems = document.querySelectorAll('.oil-item.' + type);
+                targetArr.forEach((id, index) => {
+                    allItems.forEach(item => {
+                        if(item.innerText.includes(getOilName(id))) {
+                            item.setAttribute('data-rank', index + 1);
+                        }
+                    });
+                });
+            } else {
+                // 선택되지 않은 경우 -> 추가
+                if (targetArr.length >= limit) return; // 한도 초과 방지
+                targetArr.push(oilId);
+                el.classList.add('selected');
+                el.setAttribute('data-rank', targetArr.length);
+            }
+
+            // 버튼 상태 업데이트
+            if (targetArr.length === limit) {
+                btn.classList.remove('disabled');
+                btn.disabled = false;
+            } else {
+                btn.classList.add('disabled');
+                btn.disabled = true;
+            }
+        }
+
+        function getOilName(id) {
+            const names = {citrus:'시트러스', balance:'밸런스', serenity:'세레니티', elevation:'엘리베이션', motivate:'모티베이트', cheer:'치어', passion:'패션', forgive:'포기브', console:'콘솔', peace:'피스필'};
+            return names[id];
+        }
+
+        function resetSelection(type) {
+            if(type === 'mood') moodSelection = [];
+            else emotionSelection = [];
+            
+            document.querySelectorAll('.oil-item.' + type).forEach(item => {
+                item.classList.remove('selected');
+                item.removeAttribute('data-rank');
+            });
+            
+            let btn = (type === 'mood') ? document.getElementById('btn-mood') : document.getElementById('btn-emotion');
+            btn.classList.add('disabled');
+            btn.disabled = true;
+        }
+
+        function generateResult() {
+            const m1 = moodSelection[0];
+            const e1 = emotionSelection[0];
+
+            const moodDB = {
+                citrus: { 
+                    status: "현재 에너지가 많이 고갈되어 있으며, 즉각적인 활력이 필요한 상태입니다.",
+                    deep: "시트러스 블리스를 선택한 것은 무의식이 '정체된 일상에서의 탈피'를 원하고 있음을 뜻합니다. 리모넨 성분이 세로토닌 대사를 도와 우울감을 밀어내고 기쁨의 에너지를 채워줄 것입니다.",
+                    plans: ["아침 공기 마시며 10분 산책", "비타민이 풍부한 과일 섭취", "즐거운 음악 크게 듣기"],
+                    tips: ["손바닥 시향법으로 에너지를 깨우세요.", "디퓨저로 공간을 밝게 만드세요.", "스틱 파우치에 넣어 수시로 향을 맡으세요."]
+                },
+                balance: {
+                    status: "중압감 속에 심리적 중심이 흔들리고 있으며 안정이 시급한 상태입니다.",
+                    deep: "밸런스의 선택은 '접지(Grounding)'의 갈망입니다. 나무 향의 화학 성분들이 부교감 신경을 활성화하여 들뜬 마음을 차분히 가라앉히고 현재에 집중하게 돕습니다.",
+                    plans: ["스마트폰 끄고 명상 5분", "따뜻한 물로 족욕", "편안한 숲길 걷기"],
+                    tips: ["아침 발바닥 도포로 하루의 중심을 잡으세요.", "목 뒤 긴장된 부위에 발라주세요.", "스트레스 상황에서 깊게 호흡하세요."]
+                },
+                serenity: {
+                    status: "스트레스가 높고 신경이 과민해져 있어 깊은 휴식이 절실합니다.",
+                    deep: "세레니티는 '완전한 안심'을 뜻합니다. GABA 수용체를 자극하여 뇌의 소음을 끄고 안전한 휴식처를 제공함으로써 지친 신경계를 회복시키려는 본능적 신호입니다.",
+                    plans: ["1시간 일찍 소등하고 취침", "따뜻한 허브차 한 잔", "블루라이트 차단하기"],
+                    tips: ["베개에 한 방울 떨어뜨려 숙면을 유도하세요.", "반신욕 시 욕조에 넣어 이완하세요.", "불안할 때 심장 부근에 도포하세요."]
+                },
+                elevation: {
+                    status: "자신감이 저하되어 있으며 에너지를 고양시키고 싶은 상태입니다.",
+                    deep: "엘리베이션은 코르티솔 수치를 낮추고 기쁨을 이끌어냅니다. 현재의 무거운 공기를 털어내고 내면의 빛을 다시 찾으려는 강한 의지가 투영되어 있습니다.",
+                    plans: ["거울 보고 자신에게 칭찬하기", "성취감을 느끼는 작은 일 하기", "밝은 색상의 옷 입기"],
+                    tips: ["향수처럼 손목에 사용하세요.", "나른한 오후 업무 전에 시향하세요.", "자신감이 필요한 순간에 활용하세요."]
+                }
+            };
+
+            const emotionDB = {
+                motivate: "용기와 추진력을 얻어 새로운 시작을 하고 싶어 합니다.",
+                cheer: "낙천적인 마음으로 삶의 즐거움을 회복하려 합니다.",
+                passion: "일상의 열정을 깨우고 창의적인 영감을 원하고 있습니다.",
+                forgive: "마음의 상처와 원망을 내려놓고 평안을 찾으려 합니다.",
+                console: "상실감에 대한 따뜻한 위로와 안식이 필요한 상태입니다.",
+                peace: "불안을 잠재우고 내면의 진정한 평화를 유지하고자 합니다."
+            };
+
+            const m = moodDB[m1];
+            document.getElementById('res-1').innerText = `[현재 컨디션] ${m.status}\n[무의식 감정] ${emotionDB[e1]}`;
+            document.getElementById('res-2').innerText = m.deep + "\n\n특히 당신의 내면은 현재 " + (emotionDB[e1].split(' ')[0]) + "를 향한 간절한 에너지를 필요로 하고 있습니다. 이는 매우 건강한 회복 신호입니다.";
+            
+            const l3 = document.getElementById('res-3'); l3.innerHTML = "";
+            m.plans.forEach(p => l3.innerHTML += `<li>${p}</li>`);
+
+            const l4 = document.getElementById('res-4'); l4.innerHTML = "";
+            m.tips.forEach(t => l4.innerHTML += `<li>${t}</li>`);
+
+            nextStep(4);
+        }
+    </script>
+</body>
+</html>
